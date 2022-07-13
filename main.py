@@ -31,3 +31,12 @@ async def image(images: List[UploadFile] = File(...)):
             shutil.copyfileobj(image.file, buffer)
 
         return {"filename": image.filename}
+
+@app.post("/grey_image_multiple/")
+async def create_grey_img(file:list[UploadFile]):
+    files: List[UploadFile] = File(description="Multiple files as UploadFile"):
+    return {"filenames": [file.filename for file in files]}
+    filename= await get_image(file)
+    img = Image.open(filename)
+    img.convert('L').save('grey_img.jpg')
+    return FileResponse("grey_img.jpg")
