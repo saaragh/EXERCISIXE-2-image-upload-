@@ -1,42 +1,30 @@
+from fileinput import filename
+from fastapi import FastAPI,File,UploadFile
+from typing import List 
 from PIL import Image 
-from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import FileResponse 
 import shutil
-from typing import List
-import os
-from fastapi.responses import FileResponse
+from werkzeug.utils import secure_filename
 
 
 app = FastAPI()
 
 @app.post("/image")
-async def image(image: UploadFile = File(...)):
+async def get_image(image: UploadFile = File("single image uploaded")):
     with open("destination.png", "wb") as buffer:
         shutil.copyfileobj(image.file, buffer)
     
     return {"filename": image.filename}
 
+@app.post("/uploadfiles/")
+async def Multiple_files(files: List[UploadFile] = File(),):
+    return {"filenames": [file.filename for file in files]}
+
 
 @app.post("/grey_image/")
 async def create_grey_img(file:UploadFile):
     filename= await get_image(file)
-    img = Image.open(filename)
-    img.convert('L').save('grey_img.jpg')
+    image = Image.open(filename)
+    image.convert('L').save('grey_img.jpg')
     return FileResponse("grey_img.jpg")
-
-
-@app.post("/multiimage")
-async def image(images: List[UploadFile] = File(...)):
-    for image in images:
-        with open(image.filename, "wb") as buffer:
-            shutil.copyfileobj(image.file, buffer)
-
-        return {"filename": image.filename}
-
-@app.post("/grey_image_multiple/")
-async def create_grey_img(file:list[UploadFile]):
-    files: List[UploadFile] = File(description="Multiple files as UploadFile"):
-    return {"filenames": [file.filename for file in files]}
-    filename= await get_image(file)
-    img = Image.open(filename)
-    img.convert('L').save('grey_img.jpg')
-    return FileResponse("grey_img.jpg")
+            
